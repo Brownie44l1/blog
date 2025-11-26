@@ -1,0 +1,11 @@
+# Go build
+/bin/
+/dist/
+/*.exe
+*.log
+
+# Dependency folders
+vendor/
+
+# Environment files
+.env
