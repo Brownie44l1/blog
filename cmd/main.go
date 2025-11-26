@@ -5,18 +5,12 @@ import (
 	"net/http"
 
 	"github.com/Brownie44l1/blog/internal/api"
-	"github.com/Brownie44l1/blog/internal/config"
+	"github.com/Brownie44l1/blog/config"
 	"github.com/Brownie44l1/blog/internal/repo"
 	"github.com/Brownie44l1/blog/internal/service"
 )
 
 func main() {
-    // Run migrations before connecting
-    if err := app.RunMigrations(); err != nil {
-        log.Fatalf("❌ Migration failed: %v", err)
-    }
-	log.Println("✅ Database migrations completed successfully!")
-
     db := config.NewDB()
     defer db.Close()
     log.Println("✅ Connected to database!")
