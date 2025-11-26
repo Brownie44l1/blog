@@ -3,7 +3,6 @@ package config
 import (
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -11,12 +10,7 @@ import (
 )
 
 func NewDB() *sqlx.DB {
-	if err := godotenv.Load(); err != nil {
-		// If not found in current directory, try parent directory
-		if err := godotenv.Load(filepath.Join("..", ".env")); err != nil {
-			log.Println("Warning: .env file not found, using environment variables")
-		}
-	}
+	_ = godotenv.Load();
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
