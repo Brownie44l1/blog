@@ -1,8 +1,8 @@
 package repo
 
 import (
-	"myblog/internal/models"
 	"github.com/jmoiron/sqlx"
+	"github.com/Brownie44l1/blog/internal/models"
 )
 
 type BlogRepo struct {
@@ -17,10 +17,10 @@ func (r *BlogRepo) Create(blog *models.Blog) error {
 	query := `
 		INSERT INTO blogs (user_id, title, content)
 		VALUES($1, $2, $3)
-		RETURNING id, created_at, updated_at`
+		RETURNING id, created_at`
 	return r.db.QueryRow(
 		query, blog.UserId, blog.Title, blog.Content,
-	).Scan(&blog.ID, &blog.CreatedAt, &blog.UpdatedAt)
+	).Scan(&blog.ID, &blog.CreatedAt)
 }
 
 func (r *BlogRepo) GetByID(id string) (*models.Blog, error) {

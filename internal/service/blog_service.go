@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-    "myblog/internal/models"
-    "myblog/internal/repo"
+    "github.com/Brownie44l1/blog/internal/models"
+    "github.com/Brownie44l1/blog/internal/repo"
 )
 
 type BlogService struct {
@@ -30,8 +30,6 @@ func (s *BlogService) Publish(userId, title, content string) (*models.Blog, erro
 	if err1 != nil {
 		return nil, err
 	}
-
-	user.BlogCount += 1	
 	return blog, nil
 }
 

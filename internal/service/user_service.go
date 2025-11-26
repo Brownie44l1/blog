@@ -1,10 +1,9 @@
 package service
 
 import (
-	"myblog/internal/models"
-	"myblog/internal/repo"
+	"github.com/Brownie44l1/blog/internal/models"
+	"github.com/Brownie44l1/blog/internal/repo"
 
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,15 +23,13 @@ func hashPassword(password string) (string, error) {
 	return string(bytes), nil
 }
 
-func (s *UserService) Register(username, email, password string) (*models.User, error) {
-	//id := uuid.New()
+func (s *UserService) Register(username, password string) (*models.User, error) {
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
 		return nil, err
 	}
 	user := &models.User{
 		Username: username,
-		Email: email,
 		Password: hashedPassword,
 	}
 	err1 := s.UserRepo.Create(user)

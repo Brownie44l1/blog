@@ -4,11 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"myblog/internal/api"
-	"myblog/internal/app"
-	"myblog/internal/config"
-	"myblog/internal/repo"
-	"myblog/internal/service"
+	"github.com/Brownie44l1/blog/internal/api"
+	"github.com/Brownie44l1/blog/internal/config"
+	"github.com/Brownie44l1/blog/internal/repo"
+	"github.com/Brownie44l1/blog/internal/service"
 )
 
 func main() {

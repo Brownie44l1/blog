@@ -2,7 +2,7 @@ package repo
 
 import (
 	"github.com/jmoiron/sqlx"
-    "myblog/internal/models"
+    "github.com/Brownie44l1/blog/internal/models"
 )
 
 type UserRepo struct {
@@ -15,12 +15,12 @@ func NewUserRepo(db *sqlx.DB) *UserRepo {
 
 func (r *UserRepo) Create(user *models.User) error {
 	query := `
-		INSERT INTO users (username, email, password)
-		VALUES($1, $2, $3)
-		RETURNING id, created_at, blog_count`
+		INSERT INTO users (username, password)
+		VALUES($1, $2)
+		RETURNING id`
 	return r.db.QueryRow(
-		query, user.Username, user.Email, user.Password,
-	).Scan(&user.ID, &user.CreatedAt, &user.BlogCount)
+		query, user.Username, user.Password,
+	).Scan(&user.ID)
 }
 
 func (r *UserRepo) GetByID(id string) (*models.User, error) {

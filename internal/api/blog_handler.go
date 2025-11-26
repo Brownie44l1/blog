@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"myblog/internal/service"
+	"github.com/Brownie44l1/blog/internal/service"
 
 	"github.com/go-chi/chi/v5"
 )

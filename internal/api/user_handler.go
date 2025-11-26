@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"myblog/internal/service"
+	"github.com/Brownie44l1/blog/internal/service"
 )
 
 type UserHandler struct {
@@ -19,7 +19,6 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Username string `json:"username"`
-		Email string `json:"email"`
 		Password string `json:"-"`
 	}
 
@@ -29,7 +28,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.Register(req.Username, req.Email, req.Password) 
+	user, err := h.userService.Register(req.Username, req.Password) 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
