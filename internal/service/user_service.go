@@ -1,44 +1,79 @@
 package service
 
 import (
-	"github.com/Brownie44l1/blog/internal/models"
-	"github.com/Brownie44l1/blog/internal/repo"
+    "database/sql"
+    "errors"
+    "fmt"
 
-	"golang.org/x/crypto/bcrypt"
+    "github.com/Brownie44l1/blog/internal/auth"
+    "github.com/Brownie44l1/blog/internal/models"
+    "github.com/Brownie44l1/blog/internal/repo"
 )
 
-type UserService struct {
-	UserRepo *repo.UserRepo
+var (
+    ErrUserNotFound       = errors.New("user not found")
+    ErrInvalidCredentials = errors.New("invalid credentials")
+    ErrUsernameTaken      = errors.New("username already taken")
+)
+
+type UserService interface {
+    RegisterUser(username, password string) (*models.User, error)
+    Authenticate(username, password string) (*models.User, error)
+    GetUserByID(id int64) (*models.User, error)
 }
 
-func NewUserService(userRepo *repo.UserRepo) *UserService {
-	return &UserService{UserRepo: userRepo}
+type userService struct {
+    userRepo *repo.UserRepo
 }
 
-func hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(bytes), nil
+func NewUserService(userRepo *repo.UserRepo) *userService {
+    return &userService{userRepo: userRepo}
 }
 
-func (s *UserService) Register(username, password string) (*models.User, error) {
-	hashedPassword, err := hashPassword(password)
-	if err != nil {
-		return nil, err
-	}
-	user := &models.User{
-		Username: username,
-		Password: hashedPassword,
-	}
-	err1 := s.UserRepo.Create(user)
-	if err1 != nil {
-		return nil, err1
-	}
-	return user, nil
+func (s *userService) RegisterUser(username, password string) (*models.User, error) {
+    // Check if username exists
+    _, err := s.userRepo.GetUserByUsername(username)
+    if err == nil {
+        return nil, ErrUsernameTaken
+    }
+    // Only proceed if error is "not found"
+    if !errors.Is(err, sql.ErrNoRows) {
+        return nil, fmt.Errorf("error checking username: %w", err)
+    }
+
+    // Use YOUR auth.HashPassword function here
+    hashedPassword, err := auth.HashPassword(password)
+    if err != nil {
+        return nil, fmt.Errorf("failed to hash password: %w", err)
+    }
+
+    user := &models.User{
+        Username: username,
+        Password: hashedPassword,
+    }
+
+    if err := s.userRepo.CreateUser(user); err != nil {
+        return nil, fmt.Errorf("failed to create user: %w", err)
+    }
+
+    user.Password = "" // Clear before returning
+    return user, nil
 }
 
-func (s *UserService) GetProfile(id string) (*models.User, error) {
-	return  s.UserRepo.GetByID(id)
+func (s *userService) Authenticate(username, password string) (*models.User, error) {
+    user, err := s.userRepo.GetUserByUsername(username)
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, ErrInvalidCredentials
+        }
+        return nil, fmt.Errorf("database error: %w", err)
+    }
+
+    // Use YOUR auth.VerifyPassword function here
+    if !auth.VerifyPassword(user.Password, password) {
+        return nil, ErrInvalidCredentials
+    }
+
+    user.Password = ""
+    return user, nil
 }

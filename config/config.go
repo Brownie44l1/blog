@@ -9,7 +9,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func NewDB() *sqlx.DB {
+type Config struct {
+    DB        *sqlx.DB
+    JWTSecret string
+}
+
+func Load() *Config {
 	_ = godotenv.Load();
 
 	dbURL := os.Getenv("DATABASE_URL")
@@ -17,9 +22,17 @@ func NewDB() *sqlx.DB {
 		log.Fatalln("DATABASE_URL is not set")
 	}
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+    if jwtSecret == "" {
+        log.Fatalln("JWT_SECRET is not set")
+    }
+
 	db, err := sqlx.Connect("postgres", dbURL)
 	if err != nil {
 		log.Fatalln("Failed to connect to DB:", err)
 	}
-	return db
+	return &Config{
+        DB:        db,
+        JWTSecret: jwtSecret,
+    }
 }

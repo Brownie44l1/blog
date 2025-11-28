@@ -22,7 +22,7 @@ func GenerateToken(userID int64, secret string) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
-			Issuer:    "your_issuer", // Replace with your service name
+			Issuer:    "blog-api", 
 			Subject:   "user_authentication",
 		},
 	}
