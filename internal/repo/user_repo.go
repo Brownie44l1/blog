@@ -26,15 +26,15 @@ func (r *UserRepo) CreateUser(user *models.User) error {
 	).Scan(&user.ID)
 }
 
-func (r *UserRepo) GetByID(id string) (*models.User, error) {
+func (r *UserRepo) GetByID(id int64) (*models.User, error) {
 	var user models.User
 	query := `SELECT * FROM users WHERE id=$1`
 	err := r.db.Get(&user, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user with ID %s not found: %w", id, err)
+			return nil, fmt.Errorf("user with ID %d not found: %w", id, err)
 		}
-		log.Printf("Error getting user by ID %s: %v", id, err)
+		log.Printf("Error getting user by ID %d: %v", id, err)
 		return nil, fmt.Errorf("database error retrieving user by ID: %w", err)
 	}
 	return &user, nil
@@ -60,7 +60,7 @@ func (r *UserRepo) GetUserByUsername(username string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepo) GetBlogCountByUserID(userID string) (int, error) {
+func (r *UserRepo) GetBlogCountByUserID(userID int64) (int, error) {
 	var count int
 	query := `
 		SELECT COUNT(id) FROM blogs
@@ -68,8 +68,8 @@ func (r *UserRepo) GetBlogCountByUserID(userID string) (int, error) {
 	err := r.db.QueryRow(query, userID).Scan(&count)
 
 	if err != nil {
-		log.Printf("Error counting blogs for user %s: %v", userID, err)
-		return 0, fmt.Errorf("failed to count blogs for user %s: %w", userID, err)
+		log.Printf("Error counting blogs for user %d: %v", userID, err)
+		return 0, fmt.Errorf("failed to count blogs for user %d: %w", userID, err)
 	}
 	
 	return count, nil

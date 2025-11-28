@@ -26,35 +26,35 @@ func (r *BlogRepo) CreateBlog(blog *models.Blog) error {
 	).Scan(&blog.ID, &blog.CreatedAt)
 }
 
-func (r *BlogRepo) GetBlogByID(id string) (*models.Blog, error) {
+func (r *BlogRepo) GetBlogByID(id int64) (*models.Blog, error) {
 	var blog models.Blog
 	query := `SELECT * FROM blogs WHERE id=$1`
 	err := r.db.Get(&blog, query, id)
 	if err != nil {
-		log.Printf("Error getting blog by ID %s: %v", id, err)
+		log.Printf("Error getting blog by ID %d: %v", id, err)
 		return nil, err
 	}
 	return &blog, nil
 }
 
-func (r *BlogRepo) GetBlogByUserID(userID string) ([]models.Blog, error) {
+func (r *BlogRepo) GetBlogByUserID(userID int64) ([]models.Blog, error) {
 	blogs := []models.Blog{}
 	query := `SELECT * FROM blogs WHERE user_id=$1 ORDER BY created_at DESC`
 	err := r.db.Select(&blogs, query, userID)
 	if err != nil {
-		log.Printf("Error getting blogs for user %s: %v", userID, err)
+		log.Printf("Error getting blogs for user %d: %v", userID, err)
 	}
 	return blogs, err
 }
 
-func (r *BlogRepo) DeleteBlog(blogID, userID string) error {
+func (r *BlogRepo) DeleteBlog(blogID, userID int64) error {
 	query := `
 		DELETE FROM blogs
 		WHERE id = $1 AND user_id = $2`
 
 	result, err := r.db.Exec(query, blogID, userID)
 	if err != nil {
-		log.Printf("Error deleting blog %s by user %s: %v", blogID, userID, err)
+		log.Printf("Error deleting blog %d by user %d: %v", blogID, userID, err)
 		return fmt.Errorf("failed to delete blog: %w", err)
 	}
 	rowsAffected, err := result.RowsAffected()
@@ -63,13 +63,13 @@ func (r *BlogRepo) DeleteBlog(blogID, userID string) error {
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("no blog found with ID %s for user %s, or user is not the owner", blogID, userID)
+		return fmt.Errorf("no blog found with ID %d for user %d, or user is not the owner", blogID, userID)
 	}
 
 	return nil
 }
 
-func (r *BlogRepo) GetAllBlogs(limit, offset string) ([]models.Blog, error) {
+func (r *BlogRepo) GetAllBlogs(limit, offset int64) ([]models.Blog, error) {
 	blogs := []models.Blog{}
 	query := `
 		SELECT * FROM blogs
@@ -77,7 +77,7 @@ func (r *BlogRepo) GetAllBlogs(limit, offset string) ([]models.Blog, error) {
 		LIMIT $1 OFFSET $2`
 	err := r.db.Select(&blogs, query, limit, offset)
 	if err != nil {
-		log.Printf("Error getting all blogs with limit %s offset %s: %v", limit, offset, err)
+		log.Printf("Error getting all blogs with limit %d offset %d: %v", limit, offset, err)
 	}
 	return blogs, err
 }

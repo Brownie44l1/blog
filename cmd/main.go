@@ -4,31 +4,33 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Brownie44l1/blog/internal/api"
 	"github.com/Brownie44l1/blog/config"
+	"github.com/Brownie44l1/blog/internal/api"
 	"github.com/Brownie44l1/blog/internal/repo"
 	"github.com/Brownie44l1/blog/internal/service"
 )
 
 func main() {
-    db := config.NewDB()
-    defer db.Close()
-    log.Println("✅ Connected to database!")
+	// Load configuration
+	cfg := config.Load()
+	defer cfg.DB.Close()
+	log.Println("✅ Connected to database!")
 
-    userRepo := repo.NewUserRepo(db)
-    blogRepo := repo.NewBlogRepo(db)
-    log.Println("✅ Queried Database Successfully!")
+	// Initialize repositories
+	userRepo := repo.NewUserRepo(cfg.DB)
+	blogRepo := repo.NewBlogRepo(cfg.DB)
+	log.Println("✅ Repositories initialized!")
 
-    userService := service.NewUserService(userRepo)
-    blogService := service.NewBlogService(blogRepo, userRepo)
-    log.Println("✅ Logic Applied Successfully!")
+	// Initialize services
+	userService := service.NewUserService(userRepo)
+	blogService := service.NewBlogService(blogRepo)
+	log.Println("✅ Services initialized!")
 
-    userHandler := api.NewUserHandler(userService)
-    blogHandler := api.NewBlogHandler(blogService)
-    log.Println("✅ Parsed to and/or from JSON Successfully!")
+	// Setup routes with all handlers
+	router := api.SetupRoutes(userService, blogService, cfg.JWTSecret)
+	log.Println("✅ Routes configured!")
 
-    router := api.SetUpRoutes(userHandler, blogHandler)
-
-    log.Println("Server running on :8080")
-    log.Fatal(http.ListenAndServe(":8080", router))
+	// Start server
+	log.Println("🚀 Server running on http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", router))
 }

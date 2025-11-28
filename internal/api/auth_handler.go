@@ -36,18 +36,6 @@ func NewAuthHandler(userService service.UserService, jwtSecret string) *AuthHand
 	}
 }
 
-func respondWithJSON(w http.ResponseWriter, status int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if data != nil {
-		json.NewEncoder(w).Encode(data)
-	}
-}
-
-func respondWithError(w http.ResponseWriter, code int, message string) {
-	respondWithJSON(w, code, map[string]string{"error": message})
-}
-
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 
@@ -57,7 +45,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Username == "" || req.Password == ""{
+	if req.Username == "" || req.Password == "" {
 		respondWithError(w, http.StatusBadRequest, "Username and password cannot be empty")
 		return
 	}
@@ -69,7 +57,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		respondWithError(w, http.StatusInternalServerError, "An internal server error occurred")
-			return
+		return
 	}
 
 	tokenString, err := auth.GenerateToken(user.ID, h.jwtSecret)
