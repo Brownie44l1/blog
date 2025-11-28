@@ -39,11 +39,6 @@ func (s *UserService) Register(username, password string) (*models.User, error) 
 	return user, nil
 }
 
-func (s *UserService) verifyPassword(hashedPassword, password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	return err == nil 
-}
-
 func (s *UserService) GetProfile(id string) (*models.User, error) {
 	return  s.UserRepo.GetByID(id)
 }
