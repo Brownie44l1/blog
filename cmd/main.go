@@ -13,6 +13,7 @@ import (
 func main() {
 	// Load configuration
 	cfg := config.Load()
+	log.Printf("JWT Secret loaded: %d characters", len(cfg.JWTSecret))
 	defer cfg.DB.Close()
 	log.Println("✅ Connected to database!")
 

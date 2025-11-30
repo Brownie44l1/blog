@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Brownie44l1/blog/internal/middleware"
 	"github.com/Brownie44l1/blog/internal/service"
 )
 
@@ -61,8 +62,9 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := getUserIDFromContext(r)
-	if err != nil || userID == 0 {
+	userID, ok := middleware.GetUserIDFromContext(r.Context())
+	if !ok {
+		log.Println("❌ Failed to get user ID from context")
 		respondWithError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}

@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -37,16 +38,23 @@ func GenerateToken(userID int64, secret string) (string, error) {
 }
 
 func ValidateToken(tokenString, secret string) (*Claims, error) {
+	log.Printf("🔍 ValidateToken called")
+	log.Printf("🔍 Token length: %d", len(tokenString))
+	log.Printf("🔍 Secret length: %d", len(secret))
+	
 	claims := &Claims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		log.Printf("🔍 Parsing token with method: %v", token.Method)
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			log.Printf("❌ Unexpected signing method: %v", token.Header["alg"])
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
 	})
 
 	if err != nil {
+		log.Printf("❌ Parse error: %v", err)
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			return nil, errors.New("token is expired")
 		}
@@ -60,7 +68,10 @@ func ValidateToken(tokenString, secret string) (*Claims, error) {
 	}
 
 	if !token.Valid {
+		log.Printf("❌ Token is not valid")
 		return nil, errors.New("invalid token")
 	}
+	
+	log.Printf("✅ Token validated successfully for user_id: %d", claims.UserID)
 	return claims, nil
 }

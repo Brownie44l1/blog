@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strings"
 
@@ -34,22 +35,30 @@ func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {
 			}
 
 			tokenString := strings.TrimPrefix(authHeader, bearerPrefix)
+			log.Printf("DEBUG: Received token: %s...", tokenString[:50])
+			log.Printf("DEBUG: JWT Secret length: %d", len(jwtSecret))
 
 			claims, err := auth.ValidateToken(tokenString, jwtSecret)
 			if err != nil {
+				log.Printf("❌ Token validation error: %v", err) // Add this
 				respondWithError(w, http.StatusUnauthorized, "Invalid or expired token")
 				return
 			}
 
+			log.Printf("✅ Middleware: Token validated for user ID: %d", claims.UserID) // Add this
+
 			ctx := context.WithValue(r.Context(), UserIDContextKey, claims.UserID)
 
 			r = r.WithContext(ctx)
+
+			log.Printf("✅ Middleware: Calling next handler") // Add this
 			next.ServeHTTP(w, r)
+			log.Printf("✅ Middleware: Handler completed") // Add this
 		})
 	}
 }
 
 func GetUserIDFromContext(ctx context.Context) (int64, bool) {
-    userID, ok := ctx.Value(UserIDContextKey).(int64)
-    return userID, ok
+	userID, ok := ctx.Value(UserIDContextKey).(int64)
+	return userID, ok
 }
