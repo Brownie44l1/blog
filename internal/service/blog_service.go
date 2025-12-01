@@ -14,6 +14,7 @@ type BlogRepository interface {
 	GetBlogByID(id int64) (*models.Blog, error)
 	GetBlogByUserID(userID int64) ([]models.Blog, error)
 	DeleteBlog(blogID, userID int64) error
+	UpdateBlog(blog *models.Blog) error 
 	GetAllBlogs(limit, offset int64) ([]models.Blog, error)
 	SearchBlogs(searchQuery string) ([]models.Blog, error)
 }
@@ -23,6 +24,7 @@ type BlogService interface {
 	Create(blog *models.Blog) error
 	GetByID(id int64) (*models.Blog, error)
 	GetByUserID(userID int64) ([]models.Blog, error)
+	Update(blog *models.Blog) error
 	Delete(blogID, userID int64) error
 	ListAll(limit, offset int64) ([]models.Blog, error)
 	Search(query string) ([]models.Blog, error)
@@ -70,6 +72,14 @@ func (s *blogService) GetByUserID(userID int64) ([]models.Blog, error) {
 		return nil, fmt.Errorf("error retrieving blogs for user %d: %w", userID, err)
 	}
 	return blogs, nil
+}
+
+func (s *blogService) Update(blog *models.Blog) error {
+	err := s.repo.UpdateBlog(blog)
+	if err != nil {
+		return fmt.Errorf("update failed: %w", err)
+	}
+	return nil
 }
 
 // Delete handles blog deletion with ownership verification.

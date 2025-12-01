@@ -59,6 +59,8 @@ func SetupRoutes(
 		case http.MethodDelete:
 			// Protected: only owner can delete
 			authMiddleware(http.HandlerFunc(blogHandler.DeleteBlog)).ServeHTTP(w, r)
+		case http.MethodPut:
+			authMiddleware(http.HandlerFunc(blogHandler.UpdateBlog)).ServeHTTP(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

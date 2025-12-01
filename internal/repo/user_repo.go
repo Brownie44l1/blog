@@ -27,17 +27,19 @@ func (r *UserRepo) CreateUser(user *models.User) error {
 }
 
 func (r *UserRepo) GetByID(id int64) (*models.User, error) {
-	var user models.User
-	query := `SELECT * FROM users WHERE id=$1`
-	err := r.db.Get(&user, query, id)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user with ID %d not found: %w", id, err)
-		}
-		log.Printf("Error getting user by ID %d: %v", id, err)
-		return nil, fmt.Errorf("database error retrieving user by ID: %w", err)
-	}
-	return &user, nil
+    query := `
+        SELECT u.id, u.username, u.password, COALESCE(COUNT(b.id), 0) as blog_count
+        FROM users u
+        LEFT JOIN blogs b ON u.id = b.user_id
+        WHERE u.id = $1
+        GROUP BY u.id
+    `
+    user := &models.User{}
+    err := r.db.QueryRow(query, id).Scan(&user.ID, &user.Username, &user.Password, &user.BlogCount)
+    if err != nil {
+        return nil, err
+    }
+    return user, nil
 }
 
 func (r *UserRepo) GetUserByUsername(username string) (*models.User, error) {

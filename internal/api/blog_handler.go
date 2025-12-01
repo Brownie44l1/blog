@@ -27,6 +27,11 @@ type CreateBlogRequest struct {
 	Content string `json:"content"`
 }
 
+type UpdateBlogRequest struct {
+    Title   string `json:"title"`
+    Content string `json:"content"`
+}
+
 // CreateBlog handles POST /blogs/create
 func (h *BlogHandler) CreateBlog(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -142,6 +147,51 @@ func (h *BlogHandler) GetUserBlogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, blogs)
+}
+
+func (h *BlogHandler) UpdateBlog(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPut {
+        respondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
+        return
+    }
+
+    userID, ok := middleware.GetUserIDFromContext(r.Context())
+    if !ok {
+        respondWithError(w, http.StatusUnauthorized, "Unauthorized")
+        return
+    }
+
+    path := strings.TrimPrefix(r.URL.Path, "/blogs/")
+    idStr := strings.Split(path, "/")[0]
+    blogID, err := strconv.ParseInt(idStr, 10, 64)
+    if err != nil {
+        respondWithError(w, http.StatusBadRequest, "Invalid blog ID")
+        return
+    }
+
+    var req UpdateBlogRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        respondWithError(w, http.StatusBadRequest, "Invalid request body")
+        return
+    }
+
+    blog := &models.Blog{
+        ID:      blogID,
+        UserId:  userID,
+        Title:   req.Title,
+        Content: req.Content,
+    }
+
+    if err := h.blogService.Update(blog); err != nil {
+        if strings.Contains(err.Error(), "no rows") {
+            respondWithError(w, http.StatusNotFound, "Blog not found or unauthorized")
+            return
+        }
+        respondWithError(w, http.StatusInternalServerError, err.Error())
+        return
+    }
+
+    respondWithJSON(w, http.StatusOK, blog)
 }
 
 // DeleteBlog handles DELETE /blogs/{id}
