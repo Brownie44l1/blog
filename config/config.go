@@ -13,6 +13,11 @@ import (
 type Config struct {
 	DB        *sqlx.DB
 	JWTSecret string
+
+	S3Bucket     string
+	S3Region     string
+	AWSAccessKey string
+	AWSSecretKey string
 }
 
 func Load() *Config {
@@ -44,7 +49,11 @@ func Load() *Config {
 	}
 
 	return &Config{
-		DB:        db,
-		JWTSecret: jwtSecret,
+		DB:           db,
+		JWTSecret:    jwtSecret,
+		S3Bucket:     os.Getenv("S3_BUCKET"),
+		S3Region:     os.Getenv("S3_REGION"),
+		AWSAccessKey: os.Getenv("AWS_ACCESS_KEY_ID"),
+		AWSSecretKey: os.Getenv("AWS_SECRET_ACCESS_KEY"),
 	}
 }
