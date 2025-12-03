@@ -71,18 +71,17 @@ async function runTests() {
   console.log('AUTHENTICATION TESTS');
   console.log('='.repeat(50));
 
-  // Test 1: Register
+  // Test 1: Register (FIXED: Accept 201 status)
   try {
     const res = await makeRequest('POST', '/register', testUser);
     test(
       '1. POST /register - Create new user',
-      res.status === 200 && res.data.token && res.data.username,
-      res.status !== 200 ? `Status: ${res.status}, Response: ${JSON.stringify(res.data)}` : ''
+      (res.status === 200 || res.status === 201) && res.data.token && res.data.username,
+      (res.status !== 200 && res.status !== 201) ? `Status: ${res.status}, Response: ${JSON.stringify(res.data)}` : ''
     );
     
     if (res.data.token) {
       authToken = res.data.token;
-      // Try to decode the token to get user_id
       try {
         const payload = JSON.parse(atob(authToken.split('.')[1]));
         userId = payload.user_id;
@@ -158,13 +157,13 @@ async function runTests() {
     test('5. GET /users/me - Reject unauthenticated request', false, error.message);
   }
 
-  // Test 6: Get User Profile by ID
+  // Test 6: Get User Profile by ID (NEW: Check for blog_count)
   if (userId) {
     try {
       const res = await makeRequest('GET', `/users/${userId}`);
       test(
         '6. GET /users/{id} - Get user profile by ID',
-        res.status === 200 && res.data.username === testUser.username,
+        res.status === 200 && res.data.username === testUser.username && 'blog_count' in res.data,
         res.status !== 200 ? `Status: ${res.status}, Response: ${JSON.stringify(res.data)}` : ''
       );
     } catch (error) {
@@ -282,33 +281,70 @@ async function runTests() {
     test('13. GET /users/{id}/blogs - Get user\'s blogs', false, 'No userId available');
   }
 
-  // Test 14: Delete Blog (protected)
+  // NEW Test 14: Update Blog (protected)
   if (blogId) {
     try {
-      const res = await makeRequest('DELETE', `/blogs/${blogId}`, null, authToken);
+      const updateData = {
+        title: 'Updated Test Blog Post',
+        content: 'This blog post has been updated by the test suite.',
+        tags: ['test', 'automation', 'updated']
+      };
+      const res = await makeRequest('PUT', `/blogs/${blogId}`, updateData, authToken);
       test(
-        '14. DELETE /blogs/{id} - Delete blog',
-        res.status === 200 || res.status === 204,
-        res.status !== 200 && res.status !== 204 ? `Status: ${res.status}, Response: ${JSON.stringify(res.data)}` : ''
+        '14. PUT /blogs/{id} - Update blog',
+        res.status === 200 && res.data.title === 'Updated Test Blog Post',
+        res.status !== 200 ? `Status: ${res.status}, Response: ${JSON.stringify(res.data)}` : ''
       );
     } catch (error) {
-      test('14. DELETE /blogs/{id} - Delete blog', false, error.message);
+      test('14. PUT /blogs/{id} - Update blog', false, error.message);
     }
   } else {
-    test('14. DELETE /blogs/{id} - Delete blog', false, 'No blogId available');
+    test('14. PUT /blogs/{id} - Update blog', false, 'No blogId available');
   }
 
-  // Test 15: Delete Blog without token
+  // NEW Test 15: Update Blog without token
   if (blogId) {
     try {
-      const res = await makeRequest('DELETE', `/blogs/${blogId}`, null, null);
+      const res = await makeRequest('PUT', `/blogs/${blogId}`, {
+        title: 'Unauthorized Update'
+      }, null);
       test(
-        '15. DELETE /blogs/{id} - Reject unauthenticated delete',
+        '15. PUT /blogs/{id} - Reject unauthenticated update',
         res.status === 401,
         res.status !== 401 ? 'Should require authentication!' : ''
       );
     } catch (error) {
-      test('15. DELETE /blogs/{id} - Reject unauthenticated delete', false, error.message);
+      test('15. PUT /blogs/{id} - Reject unauthenticated update', false, error.message);
+    }
+  }
+
+  // Test 16: Delete Blog (protected)
+  if (blogId) {
+    try {
+      const res = await makeRequest('DELETE', `/blogs/${blogId}`, null, authToken);
+      test(
+        '16. DELETE /blogs/{id} - Delete blog',
+        res.status === 200 || res.status === 204,
+        res.status !== 200 && res.status !== 204 ? `Status: ${res.status}, Response: ${JSON.stringify(res.data)}` : ''
+      );
+    } catch (error) {
+      test('16. DELETE /blogs/{id} - Delete blog', false, error.message);
+    }
+  } else {
+    test('16. DELETE /blogs/{id} - Delete blog', false, 'No blogId available');
+  }
+
+  // Test 17: Delete Blog without token
+  if (blogId) {
+    try {
+      const res = await makeRequest('DELETE', `/blogs/${blogId}`, null, null);
+      test(
+        '17. DELETE /blogs/{id} - Reject unauthenticated delete',
+        res.status === 401,
+        res.status !== 401 ? 'Should require authentication!' : ''
+      );
+    } catch (error) {
+      test('17. DELETE /blogs/{id} - Reject unauthenticated delete', false, error.message);
     }
   }
 
