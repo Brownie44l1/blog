@@ -11,7 +11,7 @@ func SetupRoutes(
 	userService service.UserService,
 	blogService service.BlogService,
 	jwtSecret string,
-) *http.ServeMux {
+) http.Handler {
 	mux := http.NewServeMux()
 
 	authHandler := NewAuthHandler(userService, jwtSecret)
@@ -69,5 +69,5 @@ func SetupRoutes(
 	// List all blogs with pagination (public)
 	mux.HandleFunc("/blogs", blogHandler.ListBlogs)
 
-	return mux
+	return middleware.CORS(middleware.PerformanceMiddleware(mux))
 }
