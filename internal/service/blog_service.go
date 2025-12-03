@@ -75,9 +75,19 @@ func (s *blogService) GetByUserID(userID int64) ([]models.Blog, error) {
 }
 
 func (s *blogService) Update(blog *models.Blog) error {
-	err := s.repo.UpdateBlog(blog)
+	existingBlog, err := s.repo.GetBlogByID(blog.ID)
 	if err != nil {
-		return fmt.Errorf("update failed: %w", err)
+		return fmt.Errorf("error retrieving blog ID %d: %w", blog.ID, err)
+	}
+
+	if existingBlog.UserId != blog.UserId {
+		return fmt.Errorf("unauthorized: you can only update your own blogs")
+	}
+
+	blog.CreatedAt = existingBlog.CreatedAt
+
+	if err := s.repo.UpdateBlog(blog); err != nil {
+		return fmt.Errorf("failed to update blog: %w", err)
 	}
 	return nil
 }

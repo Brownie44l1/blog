@@ -287,7 +287,6 @@ async function runTests() {
       const updateData = {
         title: 'Updated Test Blog Post',
         content: 'This blog post has been updated by the test suite.',
-        tags: ['test', 'automation', 'updated']
       };
       const res = await makeRequest('PUT', `/blogs/${blogId}`, updateData, authToken);
       test(

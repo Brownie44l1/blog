@@ -50,7 +50,7 @@ func (r *BlogRepo) GetBlogByUserID(userID int64) ([]models.Blog, error) {
 func (r *BlogRepo) UpdateBlog(blog *models.Blog) error {
     query := `
         UPDATE blogs 
-        SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP
+        SET title = $1, content = $2, updated_at = NOW()
         WHERE id = $3 AND user_id = $4
         RETURNING id, user_id, title, content, created_at, updated_at
     `
