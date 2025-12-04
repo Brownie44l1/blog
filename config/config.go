@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -42,6 +43,16 @@ func Load() *Config {
 	if err != nil {
 		log.Fatalln("❌ Failed to connect to DB:", err)
 	}
+
+	db.SetMaxOpenConns(50)
+	db.SetMaxIdleConns(50)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	if err := db.Ping(); err != nil {
+		log.Fatalln("❌ Failed to ping DB:", err)
+	}
+
+	log.Println("✅ Database connected with connection pool configured")
 
 	return &Config{
 		DB:           db,

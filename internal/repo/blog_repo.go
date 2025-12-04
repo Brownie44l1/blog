@@ -97,8 +97,9 @@ func (r *BlogRepo) SearchBlogs(searchQuery string) ([]models.Blog, error) {
 	blogs := []models.Blog{}
 	searchPattern := "%" + strings.ToLower(searchQuery) + "%"
 	query := `
-		SELECT id, user_id, title, content, created_at FROM blogs
-		WHERE LOWER(title) ILIKE $1 OR LOWER(content) ILIKE $1
+		SELECT id, user_id, title, content, created_at 
+		FROM blogs
+		WHERE search_vector @@ plainto_tsquery('english', $1)
 		ORDER BY created_at DESC`
 
 	err := r.db.Select(&blogs, query, searchPattern)
