@@ -28,7 +28,7 @@ func (r *BlogRepo) CreateBlog(blog *models.Blog) error {
 
 func (r *BlogRepo) GetBlogByID(id int64) (*models.Blog, error) {
 	var blog models.Blog
-	query := `SELECT * FROM blogs WHERE id=$1`
+	query := `SELECT id, user_id, title, content, created_at FROM blogs WHERE id=$1`
 	err := r.db.Get(&blog, query, id)
 	if err != nil {
 		log.Printf("Error getting blog by ID %d: %v", id, err)
@@ -39,7 +39,7 @@ func (r *BlogRepo) GetBlogByID(id int64) (*models.Blog, error) {
 
 func (r *BlogRepo) GetBlogByUserID(userID int64) ([]models.Blog, error) {
 	blogs := []models.Blog{}
-	query := `SELECT * FROM blogs WHERE user_id=$1 ORDER BY created_at DESC`
+	query := `SELECT id, user_id, title, content, created_at FROM blogs WHERE user_id=$1 ORDER BY created_at DESC`
 	err := r.db.Select(&blogs, query, userID)
 	if err != nil {
 		log.Printf("Error getting blogs for user %d: %v", userID, err)
@@ -83,7 +83,7 @@ func (r *BlogRepo) DeleteBlog(blogID, userID int64) error {
 func (r *BlogRepo) GetAllBlogs(limit, offset int64) ([]models.Blog, error) {
 	blogs := []models.Blog{}
 	query := `
-		SELECT * FROM blogs
+		SELECT id, user_id, title, content, created_at FROM blogs
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2`
 	err := r.db.Select(&blogs, query, limit, offset)
@@ -97,7 +97,7 @@ func (r *BlogRepo) SearchBlogs(searchQuery string) ([]models.Blog, error) {
 	blogs := []models.Blog{}
 	searchPattern := "%" + strings.ToLower(searchQuery) + "%"
 	query := `
-		SELECT * FROM blogs
+		SELECT id, user_id, title, content, created_at FROM blogs
 		WHERE LOWER(title) ILIKE $1 OR LOWER(content) ILIKE $1
 		ORDER BY created_at DESC`
 
